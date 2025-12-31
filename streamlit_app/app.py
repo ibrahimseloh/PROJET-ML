@@ -473,50 +473,84 @@ if 'api_validation_cache' not in st.session_state:
 # ===== LANDING PAGE (avant l'API) =====
 if not st.session_state.gemini_service:
     # Page de présentation
-    st.set_page_config(page_title="Astrali - Assistant Financier IA", layout="centered")
+    st.set_page_config(page_title="Astrali - Assistant Financier IA", layout="wide")
     
     # Header avec gradient
     st.markdown("""
     <style>
+        /* Full width container */
+        .block-container {
+            max-width: 100%;
+            padding: 2rem 3rem;
+        }
+        
         .landing-header {
             text-align: center;
-            padding: 40px 20px;
+            padding: 50px 40px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 15px;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
         }
         .landing-header h1 {
             color: white;
-            font-size: 3em;
+            font-size: 3.5em;
             margin: 0;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            letter-spacing: -1px;
         }
         .landing-header p {
-            color: rgba(255,255,255,0.9);
-            font-size: 1.2em;
-            margin-top: 10px;
+            color: rgba(255,255,255,0.95);
+            font-size: 1.3em;
+            margin-top: 15px;
+            font-weight: 500;
         }
         .feature-box {
-            background: #f0f2f6;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 15px 0;
-            border-left: 4px solid #667eea;
+            background: linear-gradient(135deg, #f8f9fa 0%, #eff2f7 100%);
+            padding: 30px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
+            transition: all 0.3s ease;
+        }
+        .feature-box:hover {
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.15);
+            transform: translateY(-2px);
         }
         .feature-box h3 {
             margin-top: 0;
             color: #667eea;
+            font-size: 1.2em;
+        }
+        .feature-box p {
+            margin: 10px 0;
+            color: #555;
+            line-height: 1.6;
         }
         .authors {
-            background: #fff3cd;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 30px;
+            background: linear-gradient(135deg, #fff3cd 0%, #fff8e1 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 40px;
             text-align: center;
+            border: 2px solid #ffc107;
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.15);
         }
         .authors h4 {
             margin-top: 0;
             color: #856404;
+            font-size: 1.1em;
+        }
+        .authors p {
+            margin: 8px 0;
+            color: #856404;
+        }
+        
+        /* Wide layout enhancements */
+        .main-content {
+            margin: 0 auto;
+            padding: 0 20px;
         }
     </style>
     
