@@ -110,7 +110,7 @@ class PDFRagPipeline:
             for item in ranked
         ]
     
-    def query(self, question: str, k: int = 5, rerank_top_k: int = 3, use_streaming: bool = False) -> Dict:
+    def query(self, question: str, k: int = 5, rerank_top_k: int = 10, use_streaming: bool = False) -> Dict:
         """Requête complète RAG
         
         NOTE: Streaming est DÉSACTIVÉ pour éviter les problèmes avec Streamlit

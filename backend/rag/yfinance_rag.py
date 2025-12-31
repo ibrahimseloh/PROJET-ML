@@ -147,7 +147,7 @@ class YFinanceRagAssistant:
             for item in ranked
         ]
     
-    def query(self, question: str, tickers: Optional[List[str]] = None, k: int = 5, rerank_top_k: int = 3, use_streaming: bool = False) -> Dict:
+    def query(self, question: str, tickers: Optional[List[str]] = None, k: int = 5, rerank_top_k: int = 10, use_streaming: bool = False) -> Dict:
         """Requête sur données YFinance
         
         NOTE: Streaming est DÉSACTIVÉ pour éviter les problèmes avec Streamlit
