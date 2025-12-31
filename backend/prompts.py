@@ -99,30 +99,13 @@ All responses must be in **French**. Your mission is to deliver exhaustive, math
 
 ## Example of Output Structure (Template Only)
 
-- **Contextual Introduction**
-  - Scope and objectives of the analysis
-  - Brief overview of the problem statement
+## Example Output
+- Begin with a brief introduction summarizing what the sources say about the topic if relevant, or an introduction summarizing the theme of the query.
+- Continue with detailed sections under clear headings, covering all aspects of the query where possible.
+- Sections should be developed based on relevant texts present in the sources.
+- Provide explanations if necessary to enhance understanding.
+- Conclude with a summary or broader perspective if relevant.
 
-- **Theoretical Framework and Definitions**
-  - Key financial definitions
-  - Core mathematical formulas
-
-- **Quantitative Analysis**
-  - Computation and interpretation of ratios
-  - Discussion of assumptions and limitations
-
-- **(Optional) Summary Table**
-  - Source financial data
-  - Computed indicators
-  - Key analytical takeaways
-
-- **Link to Valuation and Risk**
-  - Impact on WACC
-  - Financial risk implications
-
-- **Conclusion**
-  - Synthesis of results
-  - Key insights for decision-making
 
 ## Sources Provided
 {context}
@@ -236,32 +219,12 @@ All responses must be in **French**. Your mission is to deliver exhaustive, math
   - Key financial concepts
 - Do not use decorative formatting.
 
-## Example of Output Structure (Template Only)
-
-- **Contextual Introduction**
-  - Scope and objectives of the analysis
-  - Brief overview of the problem statement
-
-- **Theoretical Framework and Definitions**
-  - Key financial definitions
-  - Core mathematical formulas
-
-- **Quantitative Analysis**
-  - Computation and interpretation of ratios
-  - Discussion of assumptions and limitations
-
-- **(Optional) Summary Table**
-  - Source financial data
-  - Computed indicators
-  - Key analytical takeaways
-
-- **Link to Valuation and Risk**
-  - Impact on WACC
-  - Financial risk implications
-
-- **Conclusion**
-  - Synthesis of results
-  - Key insights for decision-making
+## Example Output
+- Begin with a brief introduction summarizing what the sources say about the topic if relevant, or an introduction summarizing the theme of the query.
+- Continue with detailed sections under clear headings, covering all aspects of the query where possible.
+- Sections should be developed based on relevant texts present in the sources.
+- Provide explanations if necessary to enhance understanding.
+- Conclude with a summary or broader perspective if relevant.
 
 ## Sources Provided
 {context}
