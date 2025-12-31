@@ -907,14 +907,14 @@ Méthode query():
     3. Trier par score:
        sorted_chunks = sort_by_score(scores)
     
-    4. Prendre top_k:
-       top_chunks = sorted_chunks[:top_k]
+    4. Prendre top_k=3 des chunks réranking:
+       top_chunks = sorted_chunks[:3]
     
     5. Re-ranking (optionnel):
        reranked = rerank_chunks(top_chunks, user_query)
     
     6. Construire contexte:
-       context = format_context(reranked[:rerank_top_k])
+       context = format_context(reranked[:3])
     
     7. Générer réponse:
        response = gemini_service.generate(
