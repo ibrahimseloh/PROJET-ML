@@ -19,6 +19,93 @@ from backend.config import GeminiConfig
 from backend.rag import PDFRagPipeline
 from backend.rag.yfinance_rag import YFinanceRagAssistant
 from backend.services.gemini_service import GeminiService
+import re
+import google.generativeai as genai
+import time
+
+# ===== API VALIDATION FUNCTION =====
+def validate_api_key(api_key: str) -> Dict[str, any]:
+    """
+    Validate Gemini API key with comprehensive checks.
+    Returns: {'valid': bool, 'message': str, 'service': GeminiService or None}
+    """
+    validation_result = {
+        'valid': False,
+        'message': '',
+        'service': None,
+        'error_type': None
+    }
+    
+    # 1. Check format
+    if not api_key or len(api_key.strip()) == 0:
+        validation_result['message'] = "La clé API ne peut pas être vide"
+        validation_result['error_type'] = 'empty'
+        return validation_result
+    
+    api_key = api_key.strip()
+    
+    # 2. Check pattern (basic validation - Gemini keys start with 'AIza')
+    if not re.match(r'^AIza[0-9A-Za-z\-_]{35}$', api_key):
+        validation_result['message'] = "Format de clé API invalide. Une clé Gemini commence par 'AIza'"
+        validation_result['error_type'] = 'format'
+        return validation_result
+    
+    # 3. Try to initialize and test the API
+    try:
+        # Configure the API
+        genai.configure(api_key=api_key)
+        
+        # Test with a simple request
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        response = model.generate_content(
+            "Respond with exactly: TEST_OK",
+            generation_config=genai.types.GenerationConfig(
+                max_output_tokens=10,
+                temperature=0.1
+            ),
+            request_options={"timeout": 10}
+        )
+        
+        if response and response.text:
+            # API is valid and responding
+            service = GeminiService(api_key=api_key)
+            validation_result['valid'] = True
+            validation_result['message'] = "✅ Clé API valide et fonctionnelle"
+            validation_result['service'] = service
+            return validation_result
+        else:
+            validation_result['message'] = "La réponse de l'API est vide. Vérifiez votre clé."
+            validation_result['error_type'] = 'empty_response'
+            return validation_result
+            
+    except genai.types.StopCandidateException:
+        validation_result['message'] = "La réponse de l'API a été filtrée. Vérifiez les permissions."
+        validation_result['error_type'] = 'filtered'
+        return validation_result
+    except genai.types.APIError as e:
+        error_msg = str(e)
+        if '401' in error_msg or 'unauthorized' in error_msg.lower():
+            validation_result['message'] = "Clé API invalide ou expirée (401 Unauthorized)"
+            validation_result['error_type'] = 'unauthorized'
+        elif '403' in error_msg or 'forbidden' in error_msg.lower():
+            validation_result['message'] = "Accès refusé (403). Vérifiez les permissions de la clé."
+            validation_result['error_type'] = 'forbidden'
+        elif '429' in error_msg or 'quota' in error_msg.lower():
+            validation_result['message'] = "Quota API dépassé. Attendez avant de réessayer."
+            validation_result['error_type'] = 'quota'
+        else:
+            validation_result['message'] = f"Erreur API: {error_msg[:100]}"
+            validation_result['error_type'] = 'api_error'
+        return validation_result
+    except Exception as e:
+        error_msg = str(e)
+        if 'timeout' in error_msg.lower() or 'connection' in error_msg.lower():
+            validation_result['message'] = "Erreur de connexion. Vérifiez votre connexion internet."
+            validation_result['error_type'] = 'connection'
+        else:
+            validation_result['message'] = f"Erreur: {error_msg[:80]}"
+            validation_result['error_type'] = 'unknown'
+        return validation_result
 
 # ===== MARKDOWN TO HTML CONVERSION =====
 def markdown_to_html(markdown_text):
@@ -378,6 +465,10 @@ if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 if 'api_key_submitted' not in st.session_state:
     st.session_state.api_key_submitted = False
+if 'show_api_help' not in st.session_state:
+    st.session_state.show_api_help = False
+if 'api_validation_cache' not in st.session_state:
+    st.session_state.api_validation_cache = {}
 
 # ===== LANDING PAGE (avant l'API) =====
 if not st.session_state.gemini_service:
@@ -549,25 +640,110 @@ if not st.session_state.gemini_service:
         st.markdown("## 🔑 Initialisation")
         st.markdown("Entrez votre clé API Gemini ci-dessous pour commencer:")
         
-        api_key = st.text_input(
-            "Clé API Gemini",
-            type="password",
-            key="api_key_input",
-            placeholder="AIzaSy..."
-        )
+        # Create a container for the API input section
+        api_container = st.container()
         
-        if st.button("🚀 Connecter et Démarrer", key="connect_btn", use_container_width=True):
-            if api_key:
-                try:
-                    st.session_state.gemini_service = GeminiService(api_key=api_key)
-                    st.session_state.api_key_submitted = True
-                    st.success("✅ Bienvenue dans Astrali!")
+        with api_container:
+            # API Key input
+            api_key = st.text_input(
+                "Clé API Gemini",
+                type="password",
+                key="api_key_input",
+                placeholder="AIzaSy...",
+                help="Votre clé API Google Gemini (commence par AIza)"
+            )
+            
+            # Validation and connection UI
+            col1, col2 = st.columns([2, 1])
+            
+            with col1:
+                connect_button = st.button(
+                    "🚀 Connecter",
+                    key="connect_btn",
+                    use_container_width=True,
+                    type="primary"
+                )
+            
+            with col2:
+                # Info button for help
+                if st.button("❓", key="help_btn", help="Afficher l'aide"):
+                    st.session_state.show_api_help = True
+            
+            # Real-time validation and feedback
+            if api_key and len(api_key) > 5:  # Only validate if something is entered
+                # Show validation status
+                if 'api_validation_cache' not in st.session_state:
+                    st.session_state.api_validation_cache = {}
+                
+                # Check if we already validated this key
+                cached = st.session_state.api_validation_cache.get(api_key)
+                
+                if cached:
+                    result = cached
+                else:
+                    # Show validating indicator
+                    with st.spinner("🔍 Vérification de la clé..."):
+                        result = validate_api_key(api_key)
+                    st.session_state.api_validation_cache[api_key] = result
+                
+                # Display validation feedback
+                if result['valid']:
+                    st.success("✅ Clé valide et fonctionnelle", icon="✅")
+                else:
+                    error_messages = {
+                        'empty': "⚠️ Clé vide",
+                        'format': "⚠️ Format invalide (doit commencer par 'AIza')",
+                        'unauthorized': "❌ Clé invalide ou expirée",
+                        'forbidden': "❌ Accès refusé - Vérifiez les permissions",
+                        'quota': "⏱️ Quota dépassé - Réessayez plus tard",
+                        'connection': "🌐 Erreur de connexion - Vérifiez Internet",
+                        'empty_response': "⚠️ Réponse vide de l'API",
+                        'filtered': "🚫 Réponse filtrée par l'API",
+                        'api_error': "❌ Erreur API",
+                        'unknown': "❌ Erreur inconnue"
+                    }
+                    
+                    error_display = error_messages.get(result['error_type'], result['message'])
+                    st.warning(f"{error_display}\n\n{result['message']}")
+            
+            # Show help if requested
+            if st.session_state.get('show_api_help', False):
+                st.info("""
+                ### 📖 Comment obtenir une clé API Gemini?
+                
+                1. Allez sur **[Google AI Studio](https://aistudio.google.com/apikey)**
+                2. Connectez-vous avec votre compte Google
+                3. Cliquez sur **"Create API Key"**
+                4. Choisissez **"Create new API key in new project"**
+                5. Copiez la clé générée (elle commence par `AIza`)
+                6. Collez-la ci-dessus et cliquez sur **Connecter**
+                
+                ✅ **C'est gratuit!** Vous avez **60 requêtes/min** par défaut.
+                """)
+                
+                if st.button("Fermer l'aide", key="close_help"):
+                    st.session_state.show_api_help = False
                     st.rerun()
-                except Exception as e:
-                    st.session_state.api_key_submitted = False
-                    st.error(f"❌ Erreur: {str(e)}")
-            else:
-                st.warning("⚠️ Veuillez entrer une clé API")
+            
+            # Handle connection button click
+            if connect_button:
+                if not api_key:
+                    st.error("⚠️ Veuillez entrer une clé API")
+                else:
+                    # Validate the key
+                    with st.spinner("🔐 Validation en cours..."):
+                        result = validate_api_key(api_key)
+                    
+                    if result['valid'] and result['service']:
+                        st.session_state.gemini_service = result['service']
+                        st.session_state.api_key_submitted = True
+                        st.balloons()
+                        st.success("✅ Bienvenue dans Astrali!")
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.error(f"❌ Connexion échouée\n\n**Raison:** {result['message']}")
+                        st.session_state.api_key_submitted = False
         
         with st.expander("❓ Besoin d'aide?"):
             st.markdown("""
