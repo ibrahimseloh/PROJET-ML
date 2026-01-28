@@ -1190,7 +1190,42 @@ if mode == "📑 Upload PDF":
                             st.markdown(msg['content'])
                     else:
                         with st.chat_message("assistant", avatar="🧠"):
-                            st.markdown(msg['content'])
+                            # Afficher la réponse avec support des citations cliquables
+                            st.markdown(msg['content'], unsafe_allow_html=True)
+                            
+                            # Ajouter JavaScript pour capturer les clics sur les citations
+                            st.markdown("""
+                            <script>
+                            (function() {
+                                // Attendre le chargement du DOM
+                                setTimeout(() => {
+                                    const citations = document.querySelectorAll('a.pdf-citation');
+                                    citations.forEach(link => {
+                                        link.style.cursor = 'pointer';
+                                        link.addEventListener('click', function(e) {
+                                            e.preventDefault();
+                                            const pageNum = this.getAttribute('data-page');
+                                            // Créer un événement personnalisé que Streamlit peut intercepter
+                                            window.parent.postMessage({
+                                                type: 'pdf_navigate',
+                                                page: parseInt(pageNum)
+                                            }, '*');
+                                            console.log('Navigation vers page:', pageNum);
+                                        });
+                                        // Ajouter effet hover
+                                        link.addEventListener('mouseenter', function() {
+                                            this.style.opacity = '0.7';
+                                            this.style.textDecoration = 'underline';
+                                        });
+                                        link.addEventListener('mouseleave', function() {
+                                            this.style.opacity = '1';
+                                            this.style.textDecoration = 'none';
+                                        });
+                                    });
+                                }, 100);
+                            })();
+                            </script>
+                            """, unsafe_allow_html=True)
                             
                             # Sources avec boutons natifs Streamlit
                             if msg.get('sources'):

@@ -1,8 +1,47 @@
-"""Agents pour visualisation interactive des données"""
+"""
+Agents Astrali - Agents intelligents spécialisés
+
+Ce module contient les agents autonomes pour différentes tâches:
+- PDFAgent: Analyse de documents PDF
+- EnhancedPDFAgent: PDFAgent avec orchestration et recherche web
+- YFinanceAgent: Analyse de données boursières
+- OrchestratorAgent: Coordination et décisions intelligentes
+- WebSearchAgent: Recherche web enrichie
+- ContextFusionManager: Fusion de contextes multi-sources
+"""
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
 from typing import List, Dict, Optional
+
+# Import des agents spécialisés
+from .pdf_agent import PDFAgent, PDFAgentConfig
+from .enhanced_pdf_agent import EnhancedPDFAgent
+from .yfinance_agent import YFinanceAgent, YFinanceAgentConfig
+from .web_search_agent import WebSearchAgent, WebSearchAgentConfig, WebSearchResult, WebSearchResponse, get_web_search_agent
+from .orchestrator_agent import OrchestratorAgent, OrchestratorDecision, SearchNecessity, get_orchestrator_agent
+from .context_fusion import ContextFusionManager, ContextSource
+
+__all__ = [
+    'PDFAgent',
+    'PDFAgentConfig',
+    'EnhancedPDFAgent',
+    'YFinanceAgent', 
+    'YFinanceAgentConfig',
+    'WebSearchAgent',
+    'WebSearchAgentConfig',
+    'WebSearchResult',
+    'WebSearchResponse',
+    'get_web_search_agent',
+    'OrchestratorAgent',
+    'OrchestratorDecision',
+    'SearchNecessity',
+    'get_orchestrator_agent',
+    'ContextFusionManager',
+    'ContextSource',
+    'InteractiveChartAgent'
+]
+
 
 class InteractiveChartAgent:
     """Agent pour créer graphiques interactifs avec Plotly"""
